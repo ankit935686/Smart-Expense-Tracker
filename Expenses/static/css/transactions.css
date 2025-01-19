@@ -1,0 +1,74 @@
+/* Action Buttons */
+.btn-icon {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+}
+
+.btn-icon:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+}
+
+.btn-icon.edit-expense:hover {
+    color: var(--primary-color);
+}
+
+.btn-icon.delete-expense:hover {
+    color: var(--danger-color);
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.alert-error {
+    background: var(--danger-color);
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Action Column */
+.actions-column {
+    white-space: nowrap;
+    text-align: right;
+}
+
+.actions-column .btn-icon {
+    margin-left: 0.5rem;
+}
+
+/* Hover effect on table rows */
+.table tbody tr {
+    transition: var(--transition);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+} 

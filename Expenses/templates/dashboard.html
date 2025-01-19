@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}<title>Dashboard - Smart Expense Tracker</title>{% endblock %}
+
+{% block css_files %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}"/>
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
+<!-- Add Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="dashboard-container">
+    {% include 'partials/sidebar.html' %}
+    
+    <main class="main-content">
+        <!-- Header Section -->
+        <div class="dashboard-header">
+            <div class="welcome-section">
+                <h1>Welcome back, {{ user.first_name }}! 👋</h1>
+                <p>Here's your financial overview for this month</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                    <i class="mdi mdi-plus"></i> Quick Add
+                </button>
+                <a href="{% url 'export_expenses' %}" class="btn btn-outline-primary" id="exportButton">
+                    <i class="mdi mdi-download"></i> Export PDF
+                </a>
+            </div>
+        </div>
+
+        <!-- Budget Overview Cards -->
+        <div class="overview-cards">
+            <div class="card budget-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="mdi mdi-wallet"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Total Budget</h3>
+                        <h2>${{ total_budget|floatformat:2 }}</h2>
+                        <p>Monthly allocation</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card remaining-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="mdi mdi-cash-multiple"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Remaining</h3>
+                        <h2>${{ remaining_budget|floatformat:2 }}</h2>
+                        <div class="progress-wrapper">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: {{ budget_percentage|floatformat:1 }}%"></div>
+                            </div>
+                            <span class="progress-text">{{ budget_percentage|floatformat:1 }}% remaining</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card spending-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="mdi mdi-chart-bell-curve"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Monthly Spend</h3>
+                        <h2>${{ monthly_spend|floatformat:2 }}</h2>
+                        <p>This month's expenses</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div class="analysis-section">
+            <!-- Category Breakdown -->
+            <div class="card breakdown-card">
+                <div class="card-header">
+                    <h3><i class="mdi mdi-chart-pie"></i> Expense Breakdown</h3>
+                </div>
+                <div class="card-body">
+                    <div class="category-list">
+                        {% for item in category_expenses %}
+                        <div class="category-item">
+                            <div class="category-info">
+                                <span class="category-name">{{ item.category }}</span>
+                                <span class="category-amount">${{ item.total|floatformat:2 }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" 
+                                     style="width: {{ item.percentage|floatformat:1 }}%"
+                                     role="progressbar">
+                                    {{ item.percentage|floatformat:1 }}%
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Spending Table -->
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3><i class="mdi mdi-calendar"></i> Daily Spending Distribution</h3>
+                    <div class="chart-period-selector">
+                        <button class="btn btn-sm btn-outline-primary active" data-period="week">Week</button>
+                        <button class="btn btn-sm btn-outline-primary" data-period="month">Month</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="dailySpendingTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Total Spending</th>
+                                    <th>% of Monthly Budget</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dailySpendingBody">
+                                <!-- Data will be populated via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add after the analysis-section div -->
+        <div class="card ai-insights-card">
+            <div class="card-header">
+                <h3><i class="mdi mdi-brain"></i> AI Financial Insights</h3>
+                <button class="btn btn-sm btn-outline-primary refresh-insights">
+                    <i class="mdi mdi-refresh"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="aiInsightsContent">
+                    <div class="insights-loader" style="display: none;">
+                        <i class="mdi mdi-loading mdi-spin"></i> Analyzing your finances...
+                    </div>
+                    <div class="insights-content">
+                        <!-- AI insights will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="card transactions-card">
+            <div class="card-header">
+                <h3><i class="mdi mdi-receipt"></i> Recent Transactions</h3>
+                <a href="{% url 'expense_list' %}" class="btn btn-link">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table" id="recentTransactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in recent_transactions %}
+                            <tr>
+                                <td>{{ expense.date|date:"M d, Y" }}</td>
+                                <td>{{ expense.description }}</td>
+                                <td>
+                                    <span class="category-badge">
+                                        {{ expense.category.name|default:"Uncategorized" }}
+                                    </span>
+                                </td>
+                                <td class="amount">${{ expense.amount|floatformat:2 }}</td>
+                                <td>
+                                    <a href="{% url 'edit_expense' expense.id %}" class="btn btn-icon" title="Edit">
+                                        <i class="mdi mdi-pencil"></i>
+                                    </a>
+                                    <button class="btn btn-icon delete-expense" data-expense-id="{{ expense.id }}" title="Delete">
+                                        <i class="mdi mdi-delete"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block js_files %}
+<!-- Add Chart.js if you haven't already -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Add your transactions.js -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Handle Delete Expense
+    document.querySelectorAll('.delete-expense').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const expenseId = this.getAttribute('data-expense-id');
+            
+            if (confirm('Are you sure you want to delete this expense?')) {
+                fetch(`/expense/${expenseId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Remove the row from table
+                        this.closest('tr').remove();
+                        // Show success message
+                        showNotification('Expense deleted successfully!', 'success');
+                        // Refresh the page after 1 second to update totals
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        throw new Error('Failed to delete expense');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error deleting expense', 'error');
+                });
+            }
+        });
+    });
+
+    // Add notification styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        .notification.success {
+            background-color: #4CAF50;
+        }
+        
+        .notification.error {
+            background-color: #f44336;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Function to show notifications
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    // Handle Edit Expense (already handled by the href attribute, but adding click handler for potential future enhancements)
+    document.querySelectorAll('.edit-expense').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const expenseId = this.closest('a').href.split('/').filter(Boolean).pop();
+            // The link will work automatically through the href attribute
+            // This handler is just for potential future enhancements
+        });
+    });
+
+    // Daily Spending Table Logic
+    function updateDailySpendingTable(data, dates) {
+        const tableBody = document.getElementById('dailySpendingBody');
+        if (!tableBody) return;
+
+        let html = '';
+        const monthlyBudget = parseFloat('{{ total_budget }}') || 0;
+
+        // Clear existing content
+        tableBody.innerHTML = '';
+
+        // Add each day's data
+        dates.forEach((date, index) => {
+            const amount = data[index];
+            const percentage = monthlyBudget > 0 ? ((amount / monthlyBudget) * 100).toFixed(1) : 0;
+            
+            html += `
+                <tr>
+                    <td>${date}</td>
+                    <td>$${amount.toFixed(2)}</td>
+                    <td>
+                        <div class="progress" style="height: 15px;">
+                            <div class="progress-bar" role="progressbar" 
+                                style="width: ${percentage}%;" 
+                                aria-valuenow="${percentage}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                                ${percentage}%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tableBody.innerHTML = html;
+    }
+
+    function fetchSpendingData(period) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const loader = document.createElement('div');
+        loader.className = 'text-center p-3';
+        loader.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Loading...';
+        
+        const tableBody = document.getElementById('dailySpendingBody');
+        tableBody.innerHTML = '';
+        tableBody.appendChild(loader);
+        
+        fetch(`/api/daily-spending/${period}/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                updateDailySpendingTable(data.amounts, data.dates);
+            } else {
+                throw new Error(data.message || 'Failed to load spending data');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-danger">
+                        Failed to load spending data. Please try again.
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // Add period selector button handlers
+    document.querySelectorAll('.chart-period-selector button').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.chart-period-selector button')
+                .forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Fetch data for selected period
+            fetchSpendingData(this.dataset.period);
+        });
+    });
+
+    // Initial load with weekly data
+    fetchSpendingData('week');
+
+    // Add this inside your existing DOMContentLoaded event listener
+    function generateAIInsights() {
+        const insightsContent = document.querySelector('.insights-content');
+        const loader = document.querySelector('.insights-loader');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        loader.style.display = 'block';
+        insightsContent.innerHTML = '';
+        
+        fetch('/api/generate-insights/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            loader.style.display = 'none';
+            if (data.status === 'success' && data.insights) {
+                const insights = data.insights.split('\n').filter(insight => insight.trim());
+                insightsContent.innerHTML = `
+                    <div class="insights-list">
+                        ${insights.map(insight => `
+                            <div class="insight-item">
+                                <i class="mdi mdi-lightbulb"></i>
+                                <p>${insight}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                throw new Error(data.message || 'Failed to generate insights');
+            }
+        })
+        .catch(error => {
+            loader.style.display = 'none';
+            insightsContent.innerHTML = `
+                <div class="alert alert-danger">
+                    Failed to generate insights. Please try again.
+                    <br>
+                    Error: ${error.message}
+                </div>
+            `;
+            console.error('Error:', error);
+        });
+    }
+
+    // Add refresh button handler
+    document.querySelector('.refresh-insights').addEventListener('click', generateAIInsights);
+
+    // Initial load of insights
+    generateAIInsights();
+});
+</script>
+{% endblock %}

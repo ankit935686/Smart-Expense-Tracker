@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Categories - Smart Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Add New Category</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary">Add Category</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Existing Categories</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Budget</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in categories %}
+                                <tr>
+                                    <td>{{ category.name }}</td>
+                                    <td>
+                                        <input type="number" 
+                                               class="form-control budget-input" 
+                                               value="{{ category.budget }}" 
+                                               data-category-id="{{ category.id }}"
+                                               step="0.01"
+                                               min="0">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary update-budget"
+                                                data-category-id="{{ category.id }}">
+                                            Update
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block js_files %}
+<script>
+document.querySelectorAll('.update-budget').forEach(button => {
+    button.addEventListener('click', function() {
+        const categoryId = this.dataset.categoryId;
+        const input = document.querySelector(`input[data-category-id="${categoryId}"]`);
+        const budget = input.value;
+
+        fetch(`/update-category-budget/${categoryId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `budget=${budget}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Budget updated successfully!');
+            } else {
+                alert('Error updating budget: ' + data.message);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

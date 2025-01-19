@@ -1,0 +1,29 @@
+<div class="insights-widget">
+    <div class="insights-header">
+        <h3><i class="mdi mdi-lightbulb"></i> Insights</h3>
+        <button id="refreshInsights" class="btn btn-outline-primary btn-sm">
+            <i class="mdi mdi-refresh"></i> Refresh Analysis
+        </button>
+    </div>
+    
+    <div class="insights-content">
+        {% for insight in insights %}
+        <div class="insight-card">
+            <div class="insight-icon">
+                {% if insight.category == 'budget_warning' %}
+                    <i class="mdi mdi-alert text-warning"></i>
+                {% elif insight.category == 'budget_status' %}
+                    <i class="mdi mdi-chart-line text-info"></i>
+                {% endif %}
+            </div>
+            <div class="insight-message">
+                {{ insight.message }}
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-insights">
+            <p>No insights available yet. Click "Refresh Analysis" to generate insights.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div> 

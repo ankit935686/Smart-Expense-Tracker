@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css_files %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/add_expense.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <main class="main-content">
+        <div class="container">
+            <div class="card expense-form-card">
+                <div class="card-header">
+                    <h2><i class="mdi mdi-plus-circle"></i> Add New Expense</h2>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="messages mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" id="expenseForm" class="expense-form">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.amount.id_for_label }}" class="form-label">Amount</label>
+                                {{ form.amount }}
+                                {% if form.amount.errors %}
+                                <div class="invalid-feedback">{{ form.amount.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                                <div class="input-group">
+                                    {{ form.category }}
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                        <i class="mdi mdi-plus"></i>
+                                    </button>
+                                </div>
+                                {% if form.category.errors %}
+                                <div class="invalid-feedback">{{ form.category.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                                {{ form.date }}
+                                {% if form.date.errors %}
+                                <div class="invalid-feedback">{{ form.date.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.recurring.id_for_label }}" class="form-label">Recurring</label>
+                                {{ form.recurring }}
+                                {% if form.recurring.errors %}
+                                <div class="invalid-feedback">{{ form.recurring.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="mdi mdi-check"></i> Save Expense
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Category Modal -->
+{% include 'expenses/partials/category_modal.html' %}
+{% endblock %}
+
+{% block js_files %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('expenseForm');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                // Show success message
+                const messagesDiv = document.querySelector('.messages');
+                if (messagesDiv) {
+                    messagesDiv.innerHTML = `
+                        <div class="alert alert-success alert-dismissible fade show">
+                            ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                }
+                
+                // Redirect to dashboard after a short delay
+                setTimeout(() => {
+                    window.location.href = '{% url "dashboard" %}';
+                }, 1000);
+            } else {
+                throw new Error(data.message || 'Failed to add expense');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const messagesDiv = document.querySelector('.messages');
+            if (messagesDiv) {
+                messagesDiv.innerHTML = `
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        ${error.message || 'Error adding expense. Please try again.'}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

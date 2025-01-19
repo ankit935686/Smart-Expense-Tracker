@@ -1,0 +1,52 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="mdi mdi-wallet"></i>
+            <span>ExpenseTracker</span>
+        </div>
+        <button class="sidebar-toggle">
+            <i class="mdi mdi-menu"></i>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <span class="nav-section-title">Main</span>
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="mdi mdi-view-dashboard"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'add_expense' %}" class="nav-link {% if request.resolver_match.url_name == 'add_expense' %}active{% endif %}">
+                <i class="mdi mdi-plus-circle"></i>
+                <span>Add Expense</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-section-title">Management</span>
+            <a href="{% url 'categories' %}" class="nav-link {% if request.resolver_match.url_name == 'categories' %}active{% endif %}">
+                <i class="mdi mdi-tag-multiple"></i>
+                <span>Categories</span>
+            </a>
+            <a href="{% url 'set_budget' %}" class="nav-link {% if request.resolver_match.url_name == 'set_budget' %}active{% endif %}">
+                <i class="mdi mdi-currency-usd"></i>
+                <span>Budget</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-section-title">Account</span>
+            <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="mdi mdi-account"></i>
+                <span>Profile</span>
+            </a>
+            <a href="{% url 'logout' %}" class="nav-link">
+                <i class="mdi mdi-logout"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </nav>
+</div>
