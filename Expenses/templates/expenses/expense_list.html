@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}All Transactions - Smart Expense Tracker{% endblock %}
+{% block title %}<title>All Transactions - Smart Expense Tracker</title>{% endblock %}
 
 {% block css_files %}
 {{ block.super }}
@@ -87,10 +87,12 @@
                                         <span class="category-amount">${{ category.total|floatformat:2 }}</span>
                                     </div>
                                     <div class="progress">
-                                        <div class="progress-bar category-{{ category.category__name|default:'Other' }}" 
+                                        <div class="progress-bar category-{{ category.category__name|default:'Other'|cut:' ' }}" 
                                              style="width: {{ category.percentage|floatformat:1 }}%"
                                              role="progressbar"
-                                             data-progress="{{ category.percentage|floatformat:1 }}%">
+                                             aria-valuenow="{{ category.percentage|floatformat:1 }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100">
                                         </div>
                                     </div>
                                 </div>

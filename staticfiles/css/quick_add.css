@@ -1,0 +1,65 @@
+.quick-add-modal .modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.quick-add-modal .modal-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 15px 15px 0 0;
+    border: none;
+    padding: 1.5rem;
+}
+
+.quick-add-modal .modal-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quick-add-modal .modal-body {
+    padding: 2rem;
+}
+
+.quick-add-modal .form-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.quick-add-modal .form-control,
+.quick-add-modal .form-select {
+    border: 2px solid var(--secondary-color);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.quick-add-modal .form-control:focus,
+.quick-add-modal .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(144, 224, 239, 0.25);
+}
+
+.quick-add-modal .modal-footer {
+    border: none;
+    padding: 1.5rem;
+}
+
+.quick-add-modal .btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.quick-add-modal .btn-primary {
+    background: var(--primary-color);
+    border: none;
+}
+
+.quick-add-modal .btn-primary:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+} 
