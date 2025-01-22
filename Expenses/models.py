@@ -111,6 +111,7 @@ class UserProfile(models.Model):
         validators=[MinValueValidator(0)],
         default=0
     )
+    last_budget_reset = models.DateTimeField(default=timezone.now)
     
     def get_remaining_budget(self):
         monthly_expenses = Expense.get_monthly_total(self.user)

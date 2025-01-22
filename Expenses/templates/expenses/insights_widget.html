@@ -13,7 +13,9 @@
                 {% if insight.category == 'budget_warning' %}
                     <i class="mdi mdi-alert text-warning"></i>
                 {% elif insight.category == 'budget_status' %}
-                    <i class="mdi mdi-chart-line text-info"></i>
+                    <i class="mdi mdi-robot text-info"></i>
+                {% elif insight.category == 'error' %}
+                    <i class="mdi mdi-alert-circle text-danger"></i>
                 {% endif %}
             </div>
             <div class="insight-message">

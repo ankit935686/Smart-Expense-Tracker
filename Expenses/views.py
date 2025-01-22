@@ -27,6 +27,9 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from django.db.models import Sum, Avg
+from django.core.mail import send_mail
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 def register(request):
     if request.user.is_authenticated:
@@ -74,8 +77,61 @@ def logout_view(request):
     messages.info(request, 'You have been logged out.')
     return redirect('login')
 
+def send_budget_reminder_email(user):
+    """Helper function to send budget reminder email"""
+    subject = 'Monthly Budget Reset Reminder'
+    message = f"""
+    Hello {user.username},
+
+    This is a reminder that your monthly budget has been reset for the new month.
+    Please set your new budget to help maintain your financial goals.
+
+    You can set your budget here: {settings.SITE_URL}/expenses/set-budget/
+
+    Best regards,
+    Your Expense Tracker Team
+    """
+    
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=False,
+    )
+
+@receiver(post_save, sender=UserProfile)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Signal handler to set initial budget reminder date"""
+    if created:
+        instance.last_budget_reset = timezone.now()
+        instance.save()
+
+def check_and_reset_monthly_budget():
+    """Helper function to check and reset monthly budgets"""
+    today = timezone.now()
+    
+    # Get all user profiles
+    profiles = UserProfile.objects.all()
+    
+    for profile in profiles:
+        last_reset = profile.last_budget_reset
+        
+        # Check if it's a new month since last reset
+        if (today.year > last_reset.year) or (today.month > last_reset.month):
+            # Reset budget
+            profile.total_budget = Decimal('0.00')
+            profile.last_budget_reset = today
+            profile.save()
+            
+            # Send reminder email
+            send_budget_reminder_email(profile.user)
+
 @login_required(login_url='login')
 def dashboard(request):
+    # Check for monthly budget reset at the start of dashboard view
+    check_and_reset_monthly_budget()
+    
     # Get or create user profile
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     
@@ -185,10 +241,15 @@ def update_category_budget(request, category_id):
 def set_budget(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     
+    # Check for monthly budget reset
+    check_and_reset_monthly_budget()
+    
     if request.method == 'POST':
         form = BudgetForm(request.POST, instance=user_profile)
         if form.is_valid():
-            form.save()
+            profile = form.save(commit=False)
+            profile.last_budget_reset = timezone.now()
+            profile.save()
             messages.success(request, 'Budget updated successfully!')
             return redirect('dashboard')
     else:
@@ -403,24 +464,60 @@ def delete_expense(request, expense_id):
 
 @login_required(login_url='login')
 def get_insights(request):
-    # Simplified insights without using AIInsight model
-    current_month = timezone.now().replace(day=1)
-    monthly_expenses = Expense.objects.filter(
-        user=request.user,
-        date__gte=current_month
-    )
+    try:
+        # Configure Gemini
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-pro')
+        
+        # Get current month's data
+        current_month = timezone.now().replace(day=1)
+        monthly_expenses = Expense.objects.filter(
+            user=request.user,
+            date__gte=current_month
+        )
+        
+        total_spent = monthly_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
+        user_profile = UserProfile.objects.get(user=request.user)
+        
+        # Get category breakdown
+        category_expenses = monthly_expenses.values('category__name').annotate(
+            total=Sum('amount')
+        ).order_by('-total')
+        
+        insights = []
+        
+        # Add budget warning if necessary
+        if user_profile.total_budget and total_spent > (user_profile.total_budget * Decimal('0.8')):
+            insights.append({
+                'message': f"You've spent {(total_spent/user_profile.total_budget)*100:.1f}% of your monthly budget.",
+                'category': 'budget_warning'
+            })
+        
+        # Add AI-generated insight
+        if total_spent > 0:
+            prompt = f"""
+            Analyze this spending data and provide one specific financial insight:
+            Total Budget: ${user_profile.total_budget}
+            Spent so far: ${total_spent}
+            Category breakdown: {', '.join([f"{cat['category__name']}: ${cat['total']}" for cat in category_expenses])}
+            
+            Provide a short, specific insight about spending patterns or budget management.
+            Keep it under 100 characters.
+            """
+            
+            response = model.generate_content(prompt)
+            if response.text:
+                insights.append({
+                    'message': response.text.strip(),
+                    'category': 'budget_status'
+                })
     
-    insights = []
-    
-    # Basic spending analysis
-    total_spent = monthly_expenses.aggregate(total=Sum('amount'))['total'] or 0
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    if user_profile.total_budget and total_spent > (user_profile.total_budget * Decimal('0.8')):
-        insights.append({
-            'message': f"You've spent {(total_spent/user_profile.total_budget)*100:.1f}% of your monthly budget.",
-            'category': 'budget_warning'
-        })
+    except Exception as e:
+        print(f"Error generating insights: {str(e)}")
+        insights = [{
+            'message': "Unable to generate insights at this time.",
+            'category': 'error'
+        }]
     
     return render(request, 'expenses/insights_widget.html', {'insights': insights})
 
