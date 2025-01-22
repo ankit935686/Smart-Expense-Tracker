@@ -140,15 +140,49 @@
 }
 
 .progress {
-    height: 8px;
+    height: 12px !important;
     background-color: #f8f9fa;
-    border-radius: 4px;
-    overflow: hidden;
+    border-radius: 6px;
+    overflow: visible;
+    margin: 8px 0;
+    position: relative;
 }
 
 .progress-bar {
-    background: var(--primary-gradient);
-    transition: width 0.3s ease;
+    height: 100%;
+    border-radius: 6px;
+    position: relative;
+    transition: width 0.5s ease;
+    text-align: center;
+    line-height: 12px;
+    font-size: 10px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Add the same category-specific colors */
+.progress-bar.category-Food {
+    background: linear-gradient(45deg, #FF9F43, #FFB976);
+}
+
+.progress-bar.category-Transport {
+    background: linear-gradient(45deg, #00CFE8, #1DE9B6);
+}
+
+.progress-bar.category-Entertainment {
+    background: linear-gradient(45deg, #EA5455, #FF8B8B);
+}
+
+.progress-bar.category-Bills {
+    background: linear-gradient(45deg, #7367F0, #9E95F5);
+}
+
+.progress-bar.category-Shopping {
+    background: linear-gradient(45deg, #28C76F, #48DA89);
+}
+
+.progress-bar.category-Other {
+    background: linear-gradient(45deg, #90e0ef, #caf0f8);
 }
 
 /* Table Styles */

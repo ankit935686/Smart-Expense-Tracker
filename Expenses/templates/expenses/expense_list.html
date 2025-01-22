@@ -87,10 +87,10 @@
                                         <span class="category-amount">${{ category.total|floatformat:2 }}</span>
                                     </div>
                                     <div class="progress">
-                                        <div class="progress-bar" 
+                                        <div class="progress-bar category-{{ category.category__name|default:'Other' }}" 
                                              style="width: {{ category.percentage|floatformat:1 }}%"
-                                             role="progressbar">
-                                            {{ category.percentage|floatformat:1 }}%
+                                             role="progressbar"
+                                             data-progress="{{ category.percentage|floatformat:1 }}%">
                                         </div>
                                     </div>
                                 </div>
