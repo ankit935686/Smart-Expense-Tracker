@@ -107,27 +107,28 @@
                 </div>
             </div>
 
-            <!-- Daily Spending Table -->
+            <!-- Daily Spending Distribution Section -->
             <div class="card chart-card">
                 <div class="card-header">
-                    <h3><i class="mdi mdi-calendar"></i> Daily Spending Distribution</h3>
+                    <h3><i class="mdi mdi-chart-line"></i> Daily Spending Distribution</h3>
                     <div class="chart-period-selector">
-                        <button class="btn btn-sm btn-outline-primary active" data-period="week">Week</button>
-                        <button class="btn btn-sm btn-outline-primary" data-period="month">Month</button>
+                        <button class="btn active" data-period="week">Week</button>
+                        <button class="btn" data-period="month">Month</button>
+                        <button class="btn" data-period="year">Year</button>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table" id="dailySpendingTable">
+                        <table class="table">
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>Total Spending</th>
-                                    <th>% of Monthly Budget</th>
+                                    <th>Amount</th>
+                                    <th>Distribution</th>
                                 </tr>
                             </thead>
                             <tbody id="dailySpendingBody">
-                                <!-- Data will be populated via JavaScript -->
+                                <!-- Data will be populated dynamically -->
                             </tbody>
                         </table>
                     </div>

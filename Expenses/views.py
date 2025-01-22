@@ -686,16 +686,24 @@ def export_expenses(request):
         return HttpResponse("Error generating PDF report", status=500)
 
 @login_required
-def daily_spending(request, period):
+def get_daily_spending(request, period='week'):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Authentication required'})
+    
     today = datetime.now().date()
     
+    # Set date range based on period
     if period == 'week':
         start_date = today - timedelta(days=7)
-    else:  # month
+    elif period == 'month':
         start_date = today - timedelta(days=30)
+    elif period == 'year':
+        start_date = today - timedelta(days=365)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid period'})
     
     # Get daily spending data
-    daily_expenses = Expense.objects.filter(
+    daily_spending = Expense.objects.filter(
         user=request.user,
         date__gte=start_date,
         date__lte=today
@@ -705,19 +713,21 @@ def daily_spending(request, period):
         total=Sum('amount')
     ).order_by('day')
     
-    # Create a complete date range with zeros for days without expenses
-    date_range = []
+    # Prepare data for chart
+    dates = []
     amounts = []
-    current_date = start_date
     
-    expense_dict = {expense['day']: expense['total'] for expense in daily_expenses}
+    # Fill in missing dates with zero amounts
+    current_date = start_date
+    spending_dict = {item['day']: float(item['total']) for item in daily_spending}
     
     while current_date <= today:
-        date_range.append(current_date.strftime('%b %d'))
-        amounts.append(float(expense_dict.get(current_date, 0)))
+        dates.append(current_date.strftime('%Y-%m-%d'))
+        amounts.append(spending_dict.get(current_date, 0))
         current_date += timedelta(days=1)
     
     return JsonResponse({
-        'dates': date_range,
+        'status': 'success',
+        'dates': dates,
         'amounts': amounts
     })

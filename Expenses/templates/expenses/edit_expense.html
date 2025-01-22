@@ -1,28 +1,62 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/edit_expense.css' %}">
+{% endblock %}
+
 {% block title %}Edit Expense - Smart Expense Tracker{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Edit Expense</h3>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<div class="edit-container">
+    <div class="edit-decoration decoration-1"></div>
+    <div class="edit-decoration decoration-2"></div>
+    
+    <div class="edit-box">
+        <div class="edit-header">
+            <h3>
+                <i class="mdi mdi-pencil-circle"></i>
+                Edit Expense
+            </h3>
+            <p class="text-secondary">Update your expense details</p>
         </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">
+                    {% if field.name == 'amount' %}
+                        <i class="mdi mdi-cash"></i>
+                    {% elif field.name == 'description' %}
+                        <i class="mdi mdi-text"></i>
+                    {% elif field.name == 'category' %}
+                        <i class="mdi mdi-tag"></i>
+                    {% elif field.name == 'date' %}
+                        <i class="mdi mdi-calendar"></i>
+                    {% endif %}
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="invalid-feedback">
+                    {{ field.errors|join:", " }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <div class="form-actions">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="mdi mdi-arrow-left"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="mdi mdi-content-save"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %} 

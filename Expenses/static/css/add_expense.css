@@ -1,6 +1,6 @@
 :root {
-  --primary-color: #a67c52;
-  --secondary-color: #d2b48c;
+  --primary-color: #308ecc;
+  --secondary-color: #0d9dba;
   --background-color: #f5f5f0;
   --card-background: #ffffff;
   --text-primary: #4a4a4a;
@@ -144,19 +144,19 @@ body {
 }
 
 .expense-form .btn-primary:hover {
-  background-color: #8e6a46;
+  background-color: #615fcd;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .expense-form .btn-secondary {
-  background-color: #e9ecef;
+  background-color: #d14a4a;
   border: none;
   color: var(--text-secondary);
 }
 
 .expense-form .btn-secondary:hover {
-  background-color: #dee2e6;
+  background-color: #e05a5f;
   transform: translateY(-2px);
 }
 

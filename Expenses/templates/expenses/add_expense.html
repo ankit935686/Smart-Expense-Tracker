@@ -52,14 +52,7 @@
               >
               <div class="input-group">
                 {{ form.category }}
-                <button
-                  type="button"
-                  class="btn btn-outline-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#addCategoryModal"
-                >
-                  <i class="mdi mdi-plus"></i>
-                </button>
+                
               </div>
               {% if form.category.errors %}
               <div class="invalid-feedback">{{ form.category.errors }}</div>

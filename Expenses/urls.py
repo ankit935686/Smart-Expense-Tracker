@@ -32,6 +32,6 @@ urlpatterns = [
         template_name='expenses/password_change_done.html'
     ), name='password_change_done'),
     path('export-expenses/', views.export_expenses, name='export_expenses'),
-    path('api/daily-spending/<str:period>/', views.daily_spending, name='daily_spending'),
+    path('api/daily-spending/<str:period>/', views.get_daily_spending, name='daily_spending'),
     path('api/generate-insights/', views.generate_insights, name='generate_insights'),
 ]

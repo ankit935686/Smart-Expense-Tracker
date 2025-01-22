@@ -1,35 +1,65 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Set Budget - Smart Expense Tracker{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/set_budget.css' %}">
+{% endblock %}
+
+{% block title %}<title>Set Budget - Smart Expense Tracker</title>{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
- 
+<div class="budget-container">
+    <div class="budget-decoration decoration-1"></div>
+    <div class="budget-decoration decoration-2"></div>
     
-    <main class="main-content">
-        <div class="dashboard-header">
-            <div class="welcome-section">
-                <h1>Set Monthly Budget</h1>
-                <p>Manage your monthly spending limit</p>
-            </div>
+    <div class="budget-box">
+        <div class="budget-header">
+            <h2>
+                <i class="mdi mdi-currency-usd-circle"></i>
+                Set Monthly Budget
+            </h2>
+            <p class="text-secondary">Plan your monthly spending wisely</p>
         </div>
-
-        <div class="card">
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="{{ form.total_budget.id_for_label }}" class="form-label">Monthly Budget</label>
-                        {{ form.total_budget }}
-                    </div>
-                    <div class="form-actions">
-                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Save Budget</button>
-                    </div>
-                </form>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <i class="mdi mdi-alert-circle"></i>
+                {{ message }}
             </div>
+            {% endfor %}
         </div>
-    </main>
+        {% endif %}
+        
+        <form method="post" class="budget-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.total_budget.id_for_label }}" class="form-label">
+                    <i class="mdi mdi-cash-multiple"></i>
+                    Monthly Budget Amount
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    {{ form.total_budget }}
+                </div>
+                {% if form.total_budget.errors %}
+                <div class="invalid-feedback">
+                    {{ form.total_budget.errors|join:", " }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="form-actions">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="mdi mdi-arrow-left"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="mdi mdi-content-save"></i>
+                    Save Budget
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %} 

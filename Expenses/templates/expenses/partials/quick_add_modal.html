@@ -1,0 +1,42 @@
+<!-- Quick Add Modal -->
+<div class="modal fade" id="quickAddModal" tabindex="-1" aria-labelledby="quickAddModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickAddModalLabel">
+                    <i class="mdi mdi-plus-circle"></i> Quick Add Expense
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickAddForm" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="quickDescription" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="quickDescription" name="description" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickAmount" class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="quickAmount" name="amount" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickCategory" class="form-label">Category</label>
+                        <select class="form-select" id="quickCategory" name="category" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickDate" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="quickDate" name="date" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="quickAddSubmit">Add Expense</button>
+            </div>
+        </div>
+    </div>
+</div> 
